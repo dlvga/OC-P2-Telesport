@@ -1,0 +1,9 @@
+<div class="center">
+  <div>{{ title }}</div>
+</div>
+<div class="split">
+  <div *ngFor="let indicator of indicators">
+    <p>{{ indicator.label }}</p>
+    <p>{{ indicator.value }}</p>
+  </div>
+</div>

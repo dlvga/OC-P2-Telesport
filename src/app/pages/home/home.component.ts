@@ -1,7 +1,9 @@
-import {HttpClient, HttpErrorResponse} from '@angular/common/http';
-import {Component, OnInit} from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import Chart from 'chart.js/auto';
+import { filter } from 'rxjs';
+import { Olympic } from '../../models/olympic';
+import { DataServiceBehaviour } from '../../services/data.service-behaviour';
 
 @Component({
   selector: 'app-home',
@@ -9,62 +11,46 @@ import Chart from 'chart.js/auto';
   styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent implements OnInit {
-  private olympicUrl = './assets/mock/olympic.json';
-  public pieChart!: Chart<"pie", number[], string>;
-  public totalCountries: number = 0
-  public totalJOs: number = 0
-  public error!:string
-  titlePage: string = "Medals per Country";
+  public olympics: Olympic[] = [];
+  public titlePage = 'Medals per Country';
+  public indicators: { label: string; value: number | string }[] = [];
+  public error!: string;
 
-  constructor(private router: Router, private http:HttpClient) { }
+  private readonly destroyRef = inject(DestroyRef);
+
+  constructor(private router: Router, private dataService: DataServiceBehaviour) {}
 
   ngOnInit() {
-    this.http.get<any[]>(this.olympicUrl).pipe().subscribe(
-      (data) => {
-        console.log(`Liste des données : ${JSON.stringify(data)}`);
-        if (data && data.length > 0) {
-          this.totalJOs = Array.from(new Set(data.map((i: any) => i.participations.map((f: any) => f.year)).flat())).length;
-          const countries: string[] = data.map((i: any) => i.country);
-          this.totalCountries = countries.length;
-          const medals = data.map((i: any) => i.participations.map((i: any) => (i.medalsCount)));
-          const sumOfAllMedalsYears = medals.map((i) => i.reduce((acc: any, i: any) => acc + i, 0));
-          this.buildPieChart(countries, sumOfAllMedalsYears);
-        }
-      },
-      (error:HttpErrorResponse) => {
-        console.log(`erreur : ${error}`);
-        this.error = error.message
-      }
-    )
+    this.dataService
+      .getOlympics()
+      .pipe(
+        filter((data): data is Olympic[] => data !== null),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: (data) => {
+          if (data.length === 0) {
+            return;
+          }
+
+          this.olympics = data;
+          const totalCountries = data.length;
+          const totalJOs = Array.from(
+            new Set(data.flatMap((olympic) => olympic.participations.map((participation) => participation.year)))
+          ).length;
+
+          this.indicators = [
+            { label: 'Number of countries', value: totalCountries },
+            { label: 'Number of JOs', value: totalJOs },
+          ];
+        },
+        error: (error: Error) => {
+          this.error = error.message;
+        },
+      });
   }
 
-  buildPieChart(countries: string[], sumOfAllMedalsYears: number[]) {
-    const pieChart = new Chart("DashboardPieChart", {
-      type: 'pie',
-      data: {
-        labels: countries,
-        datasets: [{
-          label: 'Medals',
-          data: sumOfAllMedalsYears,
-          backgroundColor: ['#0b868f', '#adc3de', '#7a3c53', '#8f6263', 'orange', '#94819d'],
-          hoverOffset: 4
-        }],
-      },
-      options: {
-        aspectRatio: 2.5,
-        onClick: (e) => {
-          if (e.native) {
-            const points = pieChart.getElementsAtEventForMode(e.native, 'point', { intersect: true }, true)
-            if (points.length) {
-              const firstPoint = points[0];
-              const countryName = pieChart.data.labels ? pieChart.data.labels[firstPoint.index] : '';
-              this.router.navigate(['country', countryName]);
-            }
-          }
-        }
-      }
-    });
-    this.pieChart = pieChart;
+  onCountrySelected(countryName: string): void {
+    this.router.navigate(['country', countryName]);
   }
 }
-
