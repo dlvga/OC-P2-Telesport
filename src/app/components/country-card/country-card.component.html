@@ -1,7 +1,9 @@
-<app-header [title]="titlePage" [indicators]="indicators"></app-header>
-<div class="chart-container wrapper-container">
-  <div class="container">
-    <canvas #countryChart></canvas>
-    <h2>Date</h2>
+<ng-container *ngIf="detailView">
+  <app-header [title]="detailView.title" [indicators]="detailView.indicators"></app-header>
+  <div class="chart-container wrapper-container">
+    <div class="container">
+      <canvas #countryChart></canvas>
+      <h2>Date</h2>
+    </div>
   </div>
-</div>
+</ng-container>

@@ -1,16 +1,27 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnDestroy,
+  Output,
+  SimpleChanges,
+  ViewChild,
+} from '@angular/core';
 import Chart from 'chart.js/auto';
-import { Olympic } from '../../models/olympic';
+import { PieChartData } from '../../models/chart-data';
 
 @Component({
   selector: 'app-medal-chart',
   standalone: true,
   imports: [],
   templateUrl: './medal-chart.component.html',
-  styleUrl: './medal-chart.component.scss'
+  styleUrl: './medal-chart.component.scss',
 })
 export class MedalChartComponent implements AfterViewInit, OnChanges, OnDestroy {
-  @Input() olympics: Olympic[] = [];
+  @Input() chartData: PieChartData | null = null;
   @Output() countrySelected = new EventEmitter<string>();
   @ViewChild('medalChart') private canvas?: ElementRef<HTMLCanvasElement>;
 
@@ -18,7 +29,7 @@ export class MedalChartComponent implements AfterViewInit, OnChanges, OnDestroy 
   private viewReady = false;
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['olympics'] && this.viewReady) {
+    if (changes['chartData'] && this.viewReady) {
       this.buildChart();
     }
   }
@@ -33,24 +44,19 @@ export class MedalChartComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   private buildChart(): void {
-    if (!this.canvas || this.olympics.length === 0) {
+    if (!this.canvas || !this.chartData || this.chartData.labels.length === 0) {
       return;
     }
-
-    const countries = this.olympics.map((olympic) => olympic.country);
-    const medals = this.olympics.map((olympic) =>
-      olympic.participations.reduce((acc, participation) => acc + participation.medalsCount, 0)
-    );
 
     this.pieChart?.destroy();
     this.pieChart = new Chart(this.canvas.nativeElement, {
       type: 'pie',
       data: {
-        labels: countries,
+        labels: this.chartData.labels,
         datasets: [
           {
             label: 'Medals',
-            data: medals,
+            data: this.chartData.values,
             backgroundColor: ['#0b868f', '#adc3de', '#7a3c53', '#8f6263', 'orange', '#94819d'],
             hoverOffset: 4,
           },

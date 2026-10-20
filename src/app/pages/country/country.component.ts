@@ -1,17 +1,18 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import {combineLatest, filter} from 'rxjs';
+import { combineLatest, filter } from 'rxjs';
+import { CountryDetailView } from '../../models/country-detail-view';
 import { Olympic } from '../../models/olympic';
-import { DataServiceBehaviour } from '../../services/data.service-behaviour';
+import { DataService } from '../../services/data.service';
 
 @Component({
   selector: 'app-country',
   templateUrl: './country.component.html',
-  styleUrls: ['./country.component.scss']
+  styleUrls: ['./country.component.scss'],
 })
 export class CountryComponent implements OnInit {
-  public selectedCountry: Olympic | null = null;
+  public detailView: CountryDetailView | null = null;
   public error!: string;
 
   private readonly destroyRef = inject(DestroyRef);
@@ -19,7 +20,7 @@ export class CountryComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private dataService: DataServiceBehaviour
+    private dataService: DataService
   ) {}
 
   ngOnInit() {
@@ -37,14 +38,14 @@ export class CountryComponent implements OnInit {
           }
 
           const countryName = params.get('countryName');
-          const selectedCountry = data.find((olympic: Olympic) => olympic.country === countryName);
+          const detailView = this.dataService.resolveCountryDetail(countryName, data);
 
-          if (!selectedCountry) {
+          if (!detailView) {
             this.router.navigate(['/not-found']);
             return;
           }
 
-          this.selectedCountry = selectedCountry;
+          this.detailView = detailView;
         },
         error: (error: Error) => {
           this.error = error.message;

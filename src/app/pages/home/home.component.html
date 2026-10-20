@@ -3,8 +3,8 @@
 <div>
   <app-header [title]="titlePage" [indicators]="indicators"></app-header>
   <app-medal-chart
-    *ngIf="olympics.length > 0"
-    [olympics]="olympics"
+    *ngIf="pieChart"
+    [chartData]="pieChart"
     (countrySelected)="onCountrySelected($event)"
   ></app-medal-chart>
 </div>

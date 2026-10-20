@@ -1,6 +1,6 @@
-import {Component, inject, OnInit} from '@angular/core';
-import { DataServiceBehaviour } from './services/data.service-behaviour';
-import {take} from "rxjs";
+import { Component, inject, OnInit } from '@angular/core';
+import { take } from 'rxjs';
+import { DataService } from './services/data.service';
 
 @Component({
   selector: 'app-root',
@@ -8,16 +8,12 @@ import {take} from "rxjs";
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit {
-
-  private readonly dataService = inject(DataServiceBehaviour);
-
-  constructor() {
-  }
+  private readonly dataService = inject(DataService);
 
   ngOnInit(): void {
-    this.dataService.loadOlympics()
+    this.dataService
+      .loadOlympics()
       .pipe(take(1))
       .subscribe();
   }
-
 }
