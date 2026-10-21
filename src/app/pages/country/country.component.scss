@@ -1,5 +1,25 @@
+.country-detail__intro {
+  margin: 0 0 1rem;
+  color: var(--color-text-muted);
+  font-size: clamp(0.95rem, 2vw, 1.05rem);
+  line-height: 1.55;
+}
+
+.country-detail__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .country-detail__actions {
   display: flex;
   justify-content: center;
   margin-top: 0.5rem;
+}
+
+@media (min-width: 1200px) {
+  .country-detail__intro {
+    grid-column: 1 / -1;
+    margin-bottom: 1.25rem;
+  }
 }

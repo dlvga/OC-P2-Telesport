@@ -1,6 +1,38 @@
 <section class="page country-detail">
   <div class="page-grid">
-    <app-country-card *ngIf="detailView" class="span-full" [detailView]="detailView"></app-country-card>
+    <ng-container [ngSwitch]="pageState">
+      <ng-container *ngSwitchCase="'loading'">
+        <p class="visually-hidden" role="status" aria-live="polite">Loading country data</p>
+        <div class="span-full country-detail__skeleton" aria-hidden="true">
+          <div class="skeleton skeleton--title span-full"></div>
+          <div class="skeleton-row span-full">
+            <div class="skeleton skeleton--kpi"></div>
+            <div class="skeleton skeleton--kpi"></div>
+            <div class="skeleton skeleton--kpi"></div>
+          </div>
+          <div class="skeleton skeleton--chart span-full"></div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="'empty'">
+        <p class="page-status page-status--empty span-full" role="status">No data available</p>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="'error'">
+        <div class="page-status page-status--error span-full" role="alert">
+          <p>{{ errorMessage }}</p>
+        </div>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="'ready'">
+        <p class="country-detail__intro span-full">{{ introText }}</p>
+        <app-country-card
+          *ngIf="detailView"
+          class="span-full country-detail__card"
+          [detailView]="detailView"
+        ></app-country-card>
+      </ng-container>
+    </ng-container>
 
     <div class="span-full country-detail__actions">
       <a routerLink="/" class="btn btn--secondary" aria-label="Back to Dashboard">Back to Dashboard</a>

@@ -1,8 +1,9 @@
-.center {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
+.not-found__title {
+  margin: 0 0 0.75rem;
+  font-size: 1.35rem;
+  color: var(--color-error);
+}
+
+.page-status--error p {
+  margin: 0 0 1rem;
 }

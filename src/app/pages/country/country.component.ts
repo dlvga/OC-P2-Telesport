@@ -1,10 +1,11 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { combineLatest, filter } from 'rxjs';
+import { combineLatest, EMPTY, map, switchMap } from 'rxjs';
 import { CountryDetailView } from '../../models/country-detail-view';
-import { Olympic } from '../../models/olympic';
 import { DataService } from '../../services/data.service';
+
+type CountryPageState = 'loading' | 'ready' | 'empty' | 'error';
 
 @Component({
   selector: 'app-country',
@@ -12,7 +13,11 @@ import { DataService } from '../../services/data.service';
   styleUrls: ['./country.component.scss'],
 })
 export class CountryComponent implements OnInit {
+  public readonly introText =
+    'View participation counts, medal totals, athletes, and medal trends for the selected country.';
+
   public detailView: CountryDetailView | null = null;
+  public pageState: CountryPageState = 'loading';
   public errorMessage = '';
 
   private readonly destroyRef = inject(DestroyRef);
@@ -25,31 +30,46 @@ export class CountryComponent implements OnInit {
 
   ngOnInit() {
     combineLatest([
-      this.route.paramMap,
-      this.dataService
-        .getOlympics()
-        .pipe(filter((data): data is Olympic[] => data !== null)),
+      this.route.paramMap.pipe(map((params) => this.dataService.parseCountryRouteId(params.get('id')))),
+      this.dataService.getOlympics(),
     ])
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: ([params, data]) => {
-          if (data.length === 0) {
-            this.router.navigate(['/not-found']);
-            return;
+      .pipe(
+        switchMap(([countryId, olympics]) => {
+          if (olympics === null) {
+            this.pageState = 'loading';
+            this.detailView = null;
+            return EMPTY;
           }
 
-          const countryId = Number(params.get('id'));
-          const detailView = this.dataService.resolveCountryDetailById(countryId, data);
+          if (countryId === null) {
+            this.router.navigate(['/not-found']);
+            return EMPTY;
+          }
 
+          if (olympics.length === 0) {
+            this.pageState = 'empty';
+            this.detailView = null;
+            return EMPTY;
+          }
+
+          return this.dataService.getCountryDetailView(countryId);
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: (detailView) => {
           if (!detailView) {
             this.router.navigate(['/not-found']);
             return;
           }
 
+          this.pageState = 'ready';
           this.detailView = detailView;
         },
         error: () => {
-          this.errorMessage = 'Unable to load the country\'s information.';
+          this.pageState = 'error';
+          this.detailView = null;
+          this.errorMessage = 'Unable to load the country information.';
         },
       });
   }

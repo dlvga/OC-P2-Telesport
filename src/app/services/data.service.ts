@@ -49,7 +49,19 @@ export class DataService {
     );
   }
 
-  resolveCountryDetailById(countryId: number, olympics: Olympic[]): CountryDetailView | null {
+  getCountryDetailView(countryId: number): Observable<CountryDetailView | null> {
+    return this.getOlympics().pipe(
+      map((olympics) => {
+        if (olympics === null || olympics.length === 0) {
+          return null;
+        }
+
+        return this.resolveCountryDetailById(countryId, olympics);
+      })
+    );
+  }
+
+  private resolveCountryDetailById(countryId: number, olympics: Olympic[]): CountryDetailView | null {
     if (!Number.isFinite(countryId) || olympics.length === 0) {
       return null;
     }
@@ -60,6 +72,15 @@ export class DataService {
     }
 
     return this.buildCountryDetailView(olympic);
+  }
+
+  parseCountryRouteId(idParam: string | null): number | null {
+    if (idParam === null || idParam.trim() === '') {
+      return null;
+    }
+
+    const countryId = Number(idParam);
+    return Number.isFinite(countryId) ? countryId : null;
   }
 
   private buildDashboardView(olympics: Olympic[]): DashboardView {

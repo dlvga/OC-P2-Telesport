@@ -74,8 +74,8 @@ export class CountryCardComponent implements AfterViewInit, OnChanges, OnDestroy
       },
       options: {
         responsive: true,
-        maintainAspectRatio: true,
-        aspectRatio: 2,
+        maintainAspectRatio: false,
+        aspectRatio: 1,
       },
     });
   }
