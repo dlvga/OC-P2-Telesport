@@ -1,1 +1,12 @@
-<canvas #medalChart></canvas>
+<figure class="medal-chart">
+  <p class="visually-hidden" id="medal-chart-desc">{{ description }}</p>
+  <div class="chart-canvas-host">
+    <canvas
+      #medalChart
+      role="img"
+      tabindex="0"
+      aria-labelledby="medal-chart-desc"
+      aria-label="Pie chart of medals by country. Click a country to view details."
+    ></canvas>
+  </div>
+</figure>

@@ -1,0 +1,15 @@
+.medal-chart {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #fafcfd;
+}
+
+.chart-canvas-host {
+  max-width: min(100%, 480px);
+  margin: 0 auto;
+}

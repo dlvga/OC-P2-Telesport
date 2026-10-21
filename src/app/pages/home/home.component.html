@@ -1,10 +1,46 @@
-<h2>Olympic games app</h2>
-<hr/>
-<div>
-  <app-header [title]="titlePage" [indicators]="indicators"></app-header>
-  <app-medal-chart
-    *ngIf="pieChart"
-    [chartData]="pieChart"
-    (countrySelected)="onCountrySelected($event)"
-  ></app-medal-chart>
-</div>
+<section class="page dashboard">
+  <div class="page-grid">
+    <ng-container [ngSwitch]="pageState">
+      <ng-container *ngSwitchCase="'loading'">
+        <p class="visually-hidden" role="status" aria-live="polite">Loading data</p>
+        <div class="span-full dashboard__skeleton" aria-hidden="true">
+          <div class="skeleton skeleton--text span-full"></div>
+          <div class="skeleton skeleton--title span-full"></div>
+          <div class="skeleton-row span-full">
+            <div class="skeleton skeleton--kpi"></div>
+            <div class="skeleton skeleton--kpi"></div>
+          </div>
+          <div class="skeleton skeleton--chart span-full"></div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="'empty'">
+        <p class="page-status page-status--empty span-full" role="status">No data available</p>
+        <a routerLink="/" class="btn btn--secondary span-full dashboard__back">Back</a>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="'error'">
+        <div class="page-status page-status--error span-full" role="alert">
+          <p>{{ errorMessage }}</p>
+          <a routerLink="/" class="btn" aria-label="Back to Dashboard">Back to Dashboard</a>
+        </div>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="'ready'">
+        <p class="dashboard__intro span-full">{{ introText }}</p>
+
+        <div class="dashboard__header span-full">
+          <app-header [title]="titlePage" [indicators]="indicators"></app-header>
+        </div>
+
+        <div class="dashboard__chart span-full" *ngIf="pieChart">
+          <app-medal-chart
+            [chartData]="pieChart"
+            [description]="chartDescription"
+            (countrySelected)="onCountrySelected($event)"
+          ></app-medal-chart>
+        </div>
+      </ng-container>
+    </ng-container>
+  </div>
+</section>

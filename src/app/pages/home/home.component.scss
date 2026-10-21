@@ -1,0 +1,35 @@
+.dashboard__intro {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: clamp(0.95rem, 2vw, 1.05rem);
+  line-height: 1.55;
+}
+
+.dashboard__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.dashboard__back {
+  justify-self: start;
+}
+
+@media (min-width: 1200px) {
+  .dashboard__header {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .dashboard__intro {
+    grid-column: 1 / span 4;
+    grid-row: 2;
+    align-self: start;
+  }
+
+  .dashboard__chart {
+    grid-column: 5 / span 8;
+    grid-row: 2;
+    align-self: start;
+  }
+}

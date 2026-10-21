@@ -27,6 +27,16 @@ export class CountryCardComponent implements AfterViewInit, OnChanges, OnDestroy
   private lineChart?: Chart<'line', number[], number>;
   private viewReady = false;
 
+  get chartDescription(): string {
+    if (!this.detailView) {
+      return 'Line chart of medals per Olympic edition.';
+    }
+
+    const { labels, values } = this.detailView.lineChart;
+    const points = labels.map((year, index) => `${year}: ${values[index]} medals`);
+    return `Medal trend for ${this.detailView.title}. ${points.join('. ')}.`;
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['detailView'] && this.viewReady) {
       this.buildChart();
@@ -63,7 +73,9 @@ export class CountryCardComponent implements AfterViewInit, OnChanges, OnDestroy
         ],
       },
       options: {
-        aspectRatio: 2.5,
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 2,
       },
     });
   }

@@ -49,12 +49,12 @@ export class DataService {
     );
   }
 
-  resolveCountryDetail(countryName: string | null, olympics: Olympic[]): CountryDetailView | null {
-    if (!countryName || olympics.length === 0) {
+  resolveCountryDetailById(countryId: number, olympics: Olympic[]): CountryDetailView | null {
+    if (!Number.isFinite(countryId) || olympics.length === 0) {
       return null;
     }
 
-    const olympic = olympics.find((entry) => entry.country === countryName);
+    const olympic = olympics.find((entry) => entry.id === countryId);
     if (!olympic) {
       return null;
     }
@@ -76,6 +76,7 @@ export class DataService {
     const pieChart: PieChartData = {
       labels: olympics.map((olympic) => olympic.country),
       values: olympics.map((olympic) => this.totalMedalsForCountry(olympic)),
+      countryIds: olympics.map((olympic) => olympic.id),
     };
 
     return { indicators, pieChart };

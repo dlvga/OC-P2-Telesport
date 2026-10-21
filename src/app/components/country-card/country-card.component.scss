@@ -1,19 +1,26 @@
 .wrapper-container {
-  display: flex;
-  justify-content: center;
+  width: 100%;
+  min-width: 0;
 }
 
 .container {
-  width: 50%;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 
-  h2 {
-    text-align: center;
-    color: gray;
-  }
 }
 
-@media screen and (max-width: 1000px) {
+.country-chart__caption {
+  margin: 0.75rem 0 0;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+@media (min-width: 1200px) {
   .container {
-    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
   }
 }

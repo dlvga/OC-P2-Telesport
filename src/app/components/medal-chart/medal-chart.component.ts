@@ -22,7 +22,8 @@ import { PieChartData } from '../../models/chart-data';
 })
 export class MedalChartComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() chartData: PieChartData | null = null;
-  @Output() countrySelected = new EventEmitter<string>();
+  @Input() description = 'Medal chart by country.';
+  @Output() countrySelected = new EventEmitter<number>();
   @ViewChild('medalChart') private canvas?: ElementRef<HTMLCanvasElement>;
 
   private pieChart?: Chart<'pie', number[], string>;
@@ -57,15 +58,17 @@ export class MedalChartComponent implements AfterViewInit, OnChanges, OnDestroy 
           {
             label: 'Medals',
             data: this.chartData.values,
-            backgroundColor: ['#0b868f', '#adc3de', '#7a3c53', '#8f6263', 'orange', '#94819d'],
+            backgroundColor: ['#0b868f', '#adc3de', '#7a3c53', '#8f6263', '#d29922', '#94819d'],
             hoverOffset: 4,
           },
         ],
       },
       options: {
-        aspectRatio: 2.5,
+        responsive: true,
+        maintainAspectRatio: false,
+        aspectRatio: 1,
         onClick: (event) => {
-          if (!event.native || !this.pieChart) {
+          if (!event.native || !this.pieChart || !this.chartData) {
             return;
           }
 
@@ -80,9 +83,10 @@ export class MedalChartComponent implements AfterViewInit, OnChanges, OnDestroy 
             return;
           }
 
-          const countryName = this.pieChart.data.labels?.[points[0].index];
-          if (typeof countryName === 'string' && countryName.length > 0) {
-            this.countrySelected.emit(countryName);
+          const index = points[0].index;
+          const countryId = this.chartData.countryIds[index];
+          if (Number.isFinite(countryId)) {
+            this.countrySelected.emit(countryId);
           }
         },
       },

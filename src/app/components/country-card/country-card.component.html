@@ -1,9 +1,18 @@
 <ng-container *ngIf="detailView">
   <app-header [title]="detailView.title" [indicators]="detailView.indicators"></app-header>
   <div class="chart-container wrapper-container">
-    <div class="container">
-      <canvas #countryChart></canvas>
-      <h2>Date</h2>
-    </div>
+    <figure class="container country-chart">
+      <p class="visually-hidden" id="country-chart-desc">{{ chartDescription }}</p>
+      <div class="chart-canvas-host">
+        <canvas
+          #countryChart
+          role="img"
+          tabindex="0"
+          aria-labelledby="country-chart-desc"
+          aria-label="Line chart of medals per Olympic edition."
+        ></canvas>
+      </div>
+      <figcaption class="country-chart__caption">Date</figcaption>
+    </figure>
   </div>
 </ng-container>

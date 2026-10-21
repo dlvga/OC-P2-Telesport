@@ -13,7 +13,7 @@ import { DataService } from '../../services/data.service';
 })
 export class CountryComponent implements OnInit {
   public detailView: CountryDetailView | null = null;
-  public error!: string;
+  public errorMessage = '';
 
   private readonly destroyRef = inject(DestroyRef);
 
@@ -34,11 +34,12 @@ export class CountryComponent implements OnInit {
       .subscribe({
         next: ([params, data]) => {
           if (data.length === 0) {
+            this.router.navigate(['/not-found']);
             return;
           }
 
-          const countryName = params.get('countryName');
-          const detailView = this.dataService.resolveCountryDetail(countryName, data);
+          const countryId = Number(params.get('id'));
+          const detailView = this.dataService.resolveCountryDetailById(countryId, data);
 
           if (!detailView) {
             this.router.navigate(['/not-found']);
@@ -47,8 +48,8 @@ export class CountryComponent implements OnInit {
 
           this.detailView = detailView;
         },
-        error: (error: Error) => {
-          this.error = error.message;
+        error: () => {
+          this.errorMessage = 'Unable to load the country\'s information.';
         },
       });
   }

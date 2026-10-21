@@ -1,9 +1,9 @@
-<div class="center">
-  <div>{{ title }}</div>
-</div>
-<div class="split">
-  <div *ngFor="let indicator of indicators">
-    <p>{{ indicator.label }}</p>
-    <p>{{ indicator.value }}</p>
-  </div>
-</div>
+<header class="page-header">
+  <h1 class="page-header__title">{{ title }}</h1>
+  <ul class="page-header__indicators" *ngIf="indicators.length > 0">
+    <li class="indicator-card" *ngFor="let indicator of indicators">
+      <span class="indicator-card__label">{{ indicator.label }}</span>
+      <span class="indicator-card__value">{{ indicator.value }}</span>
+    </li>
+  </ul>
+</header>
