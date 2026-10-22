@@ -6,8 +6,6 @@ import { CountryDetailView } from '../../models/country-detail-view';
 import { DataLoadStatus } from '../../models/data-load-status';
 import { DataService } from '../../services/data.service';
 
-type CountryPageState = DataLoadStatus;
-
 @Component({
   selector: 'app-country',
   templateUrl: './country.component.html',
@@ -20,7 +18,7 @@ export class CountryComponent implements OnInit {
   public readonly errorMessage = 'Unable to load the country information. Please try again later.';
 
   public detailView: CountryDetailView | null = null;
-  public pageState: CountryPageState = 'loading';
+  public pageState: DataLoadStatus = 'loading';
 
   private readonly destroyRef = inject(DestroyRef);
 

@@ -1,37 +1,20 @@
 <section class="page country-detail">
   <div class="page-grid">
-    <ng-container [ngSwitch]="pageState">
-      <ng-container *ngSwitchCase="'loading'">
-        <app-page-loading-skeleton
-          class="span-full"
-          statusMessage="Loading country data"
-          [kpiCount]="3"
-        ></app-page-loading-skeleton>
-      </ng-container>
-
-      <ng-container *ngSwitchCase="'empty'">
-        <app-page-status-panel class="span-full" variant="empty"></app-page-status-panel>
-      </ng-container>
-
-      <ng-container *ngSwitchCase="'error'">
-        <app-page-status-panel
-          class="span-full"
-          variant="error"
-          [message]="errorMessage"
-          retryAriaLabel="Try loading country data again"
-          (retry)="onRetryLoad()"
-        ></app-page-status-panel>
-      </ng-container>
-
-      <ng-container *ngSwitchCase="'ready'">
-        <p class="country-detail__intro span-full">{{ introText }}</p>
-        <app-country-card
-          *ngIf="detailView"
-          class="span-full country-detail__card"
-          [detailView]="detailView"
-        ></app-country-card>
-      </ng-container>
-    </ng-container>
+    <app-page-load-shell
+      [loadState]="pageState"
+      loadingStatusMessage="Loading country data"
+      [kpiCount]="3"
+      [errorMessage]="errorMessage"
+      retryAriaLabel="Try loading country data again"
+      (retry)="onRetryLoad()"
+    >
+      <p class="country-detail__intro span-full">{{ introText }}</p>
+      <app-country-card
+        *ngIf="detailView"
+        class="span-full country-detail__card"
+        [detailView]="detailView"
+      ></app-country-card>
+    </app-page-load-shell>
 
     <div class="span-full country-detail__actions">
       <a routerLink="/" class="btn btn--secondary" aria-label="Back to Dashboard">Back to Dashboard</a>

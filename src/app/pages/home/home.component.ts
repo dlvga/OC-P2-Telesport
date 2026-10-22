@@ -7,8 +7,6 @@ import { DataLoadStatus } from '../../models/data-load-status';
 import { Indicator } from '../../models/indicator';
 import { DataService } from '../../services/data.service';
 
-type DashboardPageState = DataLoadStatus;
-
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -24,7 +22,7 @@ export class HomeComponent implements OnInit {
   public indicators: Indicator[] = [];
   public pieChart: PieChartData | null = null;
   public chartDescription = '';
-  public pageState: DashboardPageState = 'loading';
+  public pageState: DataLoadStatus = 'loading';
 
   private readonly destroyRef = inject(DestroyRef);
 

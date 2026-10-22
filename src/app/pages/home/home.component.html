@@ -1,44 +1,27 @@
 <section class="page dashboard">
   <div class="page-grid">
-    <ng-container [ngSwitch]="pageState">
-      <ng-container *ngSwitchCase="'loading'">
-        <app-page-loading-skeleton
-          class="span-full"
-          statusMessage="Loading data"
-          [showIntroLine]="true"
-          [kpiCount]="2"
-        ></app-page-loading-skeleton>
-      </ng-container>
+    <app-page-load-shell
+      [loadState]="pageState"
+      loadingStatusMessage="Loading data"
+      [showIntroLine]="true"
+      [kpiCount]="2"
+      [errorMessage]="errorMessage"
+      retryAriaLabel="Try loading Olympic data again"
+      (retry)="onRetryLoad()"
+    >
+      <p class="dashboard__intro span-full">{{ introText }}</p>
 
-      <ng-container *ngSwitchCase="'empty'">
-        <app-page-status-panel class="span-full" variant="empty"></app-page-status-panel>
-      </ng-container>
+      <div class="dashboard__header span-full">
+        <app-header [title]="titlePage" [indicators]="indicators"></app-header>
+      </div>
 
-      <ng-container *ngSwitchCase="'error'">
-        <app-page-status-panel
-          class="span-full"
-          variant="error"
-          [message]="errorMessage"
-          retryAriaLabel="Try loading Olympic data again"
-          (retry)="onRetryLoad()"
-        ></app-page-status-panel>
-      </ng-container>
-
-      <ng-container *ngSwitchCase="'ready'">
-        <p class="dashboard__intro span-full">{{ introText }}</p>
-
-        <div class="dashboard__header span-full">
-          <app-header [title]="titlePage" [indicators]="indicators"></app-header>
-        </div>
-
-        <div class="dashboard__chart span-full" *ngIf="pieChart">
-          <app-medal-chart
-            [chartData]="pieChart"
-            [description]="chartDescription"
-            (countrySelected)="onCountrySelected($event)"
-          ></app-medal-chart>
-        </div>
-      </ng-container>
-    </ng-container>
+      <div class="dashboard__chart span-full" *ngIf="pieChart">
+        <app-medal-chart
+          [chartData]="pieChart"
+          [description]="chartDescription"
+          (countrySelected)="onCountrySelected($event)"
+        ></app-medal-chart>
+      </div>
+    </app-page-load-shell>
   </div>
 </section>
