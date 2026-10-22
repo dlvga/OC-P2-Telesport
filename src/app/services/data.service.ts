@@ -36,6 +36,16 @@ export class DataService {
       return of(null);
     }
 
+    return this.fetchOlympicsFromHttp();
+  }
+
+  retryLoadOlympics(): Observable<Olympic[] | null> {
+    this.olympicsSubject.next(null);
+    this.loadStatusSubject.next('loading');
+    return this.fetchOlympicsFromHttp();
+  }
+
+  private fetchOlympicsFromHttp(): Observable<Olympic[] | null> {
     this.loadStatusSubject.next('loading');
 
     const olympicUrl = environment.simulateOlympicsLoadError

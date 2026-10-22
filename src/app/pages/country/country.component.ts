@@ -1,7 +1,7 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { combineLatest, EMPTY, map, switchMap } from 'rxjs';
+import { combineLatest, EMPTY, map, switchMap, take } from 'rxjs';
 import { CountryDetailView } from '../../models/country-detail-view';
 import { DataLoadStatus } from '../../models/data-load-status';
 import { DataService } from '../../services/data.service';
@@ -29,6 +29,10 @@ export class CountryComponent implements OnInit {
     private router: Router,
     private dataService: DataService
   ) {}
+
+  onRetryLoad(): void {
+    this.dataService.retryLoadOlympics().pipe(take(1)).subscribe();
+  }
 
   ngOnInit() {
     combineLatest([

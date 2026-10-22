@@ -1,7 +1,7 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { combineLatest } from 'rxjs';
+import { combineLatest, take } from 'rxjs';
 import { PieChartData } from '../../models/chart-data';
 import { DataLoadStatus } from '../../models/data-load-status';
 import { Indicator } from '../../models/indicator';
@@ -65,6 +65,10 @@ export class HomeComponent implements OnInit {
 
   onCountrySelected(countryId: number): void {
     this.router.navigate(['country', countryId]);
+  }
+
+  onRetryLoad(): void {
+    this.dataService.retryLoadOlympics().pipe(take(1)).subscribe();
   }
 
   private buildChartDescription(chart: PieChartData): string {

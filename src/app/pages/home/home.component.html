@@ -11,15 +11,17 @@
       </ng-container>
 
       <ng-container *ngSwitchCase="'empty'">
-        <p class="page-status page-status--empty span-full" role="status">No data available</p>
-        <a routerLink="/" class="btn btn--secondary span-full dashboard__back">Back</a>
+        <app-page-status-panel class="span-full" variant="empty"></app-page-status-panel>
       </ng-container>
 
       <ng-container *ngSwitchCase="'error'">
-        <div class="page-status page-status--error span-full" role="alert">
-          <p>{{ errorMessage }}</p>
-          <a routerLink="/" class="btn" aria-label="Back to Dashboard">Try again</a>
-        </div>
+        <app-page-status-panel
+          class="span-full"
+          variant="error"
+          [message]="errorMessage"
+          retryAriaLabel="Try loading Olympic data again"
+          (retry)="onRetryLoad()"
+        ></app-page-status-panel>
       </ng-container>
 
       <ng-container *ngSwitchCase="'ready'">
