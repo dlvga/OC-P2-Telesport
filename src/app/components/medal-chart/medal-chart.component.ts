@@ -10,13 +10,14 @@ import {
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
+import { NgFor } from '@angular/common';
 import Chart from 'chart.js/auto';
 import { PieChartData } from '../../models/chart-data';
 
 @Component({
   selector: 'app-medal-chart',
   standalone: true,
-  imports: [],
+  imports: [NgFor],
   templateUrl: './medal-chart.component.html',
   styleUrl: './medal-chart.component.scss',
 })
@@ -42,6 +43,13 @@ export class MedalChartComponent implements AfterViewInit, OnChanges, OnDestroy 
 
   ngOnDestroy(): void {
     this.pieChart?.destroy();
+  }
+
+  selectCountry(index: number): void {
+    const countryId = this.chartData?.countryIds[index];
+    if (Number.isFinite(countryId)) {
+      this.countrySelected.emit(countryId);
+    }
   }
 
   private buildChart(): void {
@@ -83,11 +91,7 @@ export class MedalChartComponent implements AfterViewInit, OnChanges, OnDestroy 
             return;
           }
 
-          const index = points[0].index;
-          const countryId = this.chartData.countryIds[index];
-          if (Number.isFinite(countryId)) {
-            this.countrySelected.emit(countryId);
-          }
+          this.selectCountry(points[0].index);
         },
       },
     });

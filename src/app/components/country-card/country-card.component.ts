@@ -1,4 +1,4 @@
-import { NgIf } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -16,7 +16,7 @@ import { HeaderComponent } from '../header/header.component';
 @Component({
   selector: 'app-country-card',
   standalone: true,
-  imports: [HeaderComponent, NgIf],
+  imports: [HeaderComponent, NgFor, NgIf],
   templateUrl: './country-card.component.html',
   styleUrl: './country-card.component.scss',
 })
