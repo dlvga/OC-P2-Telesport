@@ -3,14 +3,11 @@
     <app-page-load-shell
       [loadState]="pageState"
       loadingStatusMessage="Loading data"
-      [showIntroLine]="true"
       [kpiCount]="2"
       [errorMessage]="errorMessage"
       retryAriaLabel="Try loading Olympic data again"
       (retry)="onRetryLoad()"
     >
-      <p class="dashboard__intro span-full">{{ introText }}</p>
-
       <div class="dashboard__header span-full">
         <app-header [title]="titlePage" [indicators]="indicators"></app-header>
       </div>

@@ -13,9 +13,6 @@ import { DataService } from '../../services/data.service';
   styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent implements OnInit {
-  public readonly introText =
-    'TeleSport offers you an overview of the Olympic medals won by each country across all editions.';
-
   public readonly errorMessage = 'Unable to load the Olympic data. Please try again later.';
 
   public titlePage = 'Medals per Country';

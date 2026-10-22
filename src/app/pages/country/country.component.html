@@ -8,7 +8,6 @@
       retryAriaLabel="Try loading country data again"
       (retry)="onRetryLoad()"
     >
-      <p class="country-detail__intro span-full">{{ introText }}</p>
       <app-country-card
         *ngIf="detailView"
         class="span-full country-detail__card"

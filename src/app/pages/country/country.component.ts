@@ -12,9 +12,6 @@ import { DataService } from '../../services/data.service';
   styleUrls: ['./country.component.scss'],
 })
 export class CountryComponent implements OnInit {
-  public readonly introText =
-    'View participation counts, medal totals, athletes, and medal trends for the selected country.';
-
   public readonly errorMessage = 'Unable to load the country information. Please try again later.';
 
   public detailView: CountryDetailView | null = null;
