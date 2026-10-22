@@ -1,0 +1,9 @@
+<p class="visually-hidden" role="status" aria-live="polite">{{ statusMessage }}</p>
+<div class="page-loading-skeleton span-full" aria-hidden="true">
+  <div class="skeleton skeleton--text span-full" *ngIf="showIntroLine"></div>
+  <div class="skeleton skeleton--title span-full"></div>
+  <div class="skeleton-row span-full">
+    <div class="skeleton skeleton--kpi" *ngFor="let placeholder of kpiPlaceholders"></div>
+  </div>
+  <div class="skeleton skeleton--chart span-full"></div>
+</div>

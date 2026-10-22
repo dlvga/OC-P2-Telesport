@@ -2,16 +2,11 @@
   <div class="page-grid">
     <ng-container [ngSwitch]="pageState">
       <ng-container *ngSwitchCase="'loading'">
-        <p class="visually-hidden" role="status" aria-live="polite">Loading country data</p>
-        <div class="span-full country-detail__skeleton" aria-hidden="true">
-          <div class="skeleton skeleton--title span-full"></div>
-          <div class="skeleton-row span-full">
-            <div class="skeleton skeleton--kpi"></div>
-            <div class="skeleton skeleton--kpi"></div>
-            <div class="skeleton skeleton--kpi"></div>
-          </div>
-          <div class="skeleton skeleton--chart span-full"></div>
-        </div>
+        <app-page-loading-skeleton
+          class="span-full"
+          statusMessage="Loading country data"
+          [kpiCount]="3"
+        ></app-page-loading-skeleton>
       </ng-container>
 
       <ng-container *ngSwitchCase="'empty'">

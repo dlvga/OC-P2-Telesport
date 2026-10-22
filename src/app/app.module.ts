@@ -6,13 +6,21 @@ import { AppComponent } from './app.component';
 import { CountryCardComponent } from './components/country-card/country-card.component';
 import { HeaderComponent } from './components/header/header.component';
 import { MedalChartComponent } from './components/medal-chart/medal-chart.component';
+import { PageLoadingSkeletonComponent } from './components/page-loading-skeleton/page-loading-skeleton.component';
 import { HomeComponent } from './pages/home/home.component';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
 import { CountryComponent } from './pages/country/country.component';
 
 @NgModule({
   declarations: [AppComponent, HomeComponent, NotFoundComponent, CountryComponent],
-  imports: [BrowserModule, AppRoutingModule, HeaderComponent, CountryCardComponent, MedalChartComponent],
+  imports: [
+    BrowserModule,
+    AppRoutingModule,
+    HeaderComponent,
+    CountryCardComponent,
+    MedalChartComponent,
+    PageLoadingSkeletonComponent,
+  ],
   providers: [provideHttpClient()],
   bootstrap: [AppComponent],
 })
