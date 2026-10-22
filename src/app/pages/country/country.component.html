@@ -21,6 +21,7 @@
       <ng-container *ngSwitchCase="'error'">
         <div class="page-status page-status--error span-full" role="alert">
           <p>{{ errorMessage }}</p>
+          <a routerLink="/" class="btn" aria-label="Back to Dashboard">Try again</a>
         </div>
       </ng-container>
 

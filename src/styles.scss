@@ -183,8 +183,20 @@ a {
 }
 
 .skeleton--chart {
-  height: min(55vw, 320px);
-  min-height: 220px;
+  width: 100%;
+  min-height: 240px;
+}
+
+@media (min-width: 768px) {
+  .skeleton--chart {
+    min-height: 320px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .skeleton--chart {
+    min-height: 440px;
+  }
 }
 
 .skeleton-row {

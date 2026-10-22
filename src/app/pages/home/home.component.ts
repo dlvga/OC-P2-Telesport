@@ -1,12 +1,13 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { filter } from 'rxjs';
+import { combineLatest } from 'rxjs';
 import { PieChartData } from '../../models/chart-data';
+import { DataLoadStatus } from '../../models/data-load-status';
 import { Indicator } from '../../models/indicator';
 import { DataService } from '../../services/data.service';
 
-type DashboardPageState = 'loading' | 'ready' | 'empty' | 'error';
+type DashboardPageState = DataLoadStatus;
 
 @Component({
   selector: 'app-home',
@@ -17,54 +18,47 @@ export class HomeComponent implements OnInit {
   public readonly introText =
     'TeleSport offers you an overview of the Olympic medals won by each country across all editions.';
 
+  public readonly errorMessage = 'Unable to load the Olympic data. Please try again later.';
+
   public titlePage = 'Medals per Country';
   public indicators: Indicator[] = [];
   public pieChart: PieChartData | null = null;
   public chartDescription = '';
   public pageState: DashboardPageState = 'loading';
-  public errorMessage = '';
 
   private readonly destroyRef = inject(DestroyRef);
 
   constructor(private router: Router, private dataService: DataService) {}
 
   ngOnInit() {
-    this.dataService
-      .getOlympics()
+    combineLatest([this.dataService.getLoadStatus(), this.dataService.getDashboardView()])
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (data) => {
-          if (data === null) {
+        next: ([status, view]) => {
+          if (status === 'loading') {
             this.pageState = 'loading';
             return;
           }
 
-          if (data.length === 0) {
-            this.pageState = 'empty';
+          if (status === 'error') {
+            this.pageState = 'error';
+            return;
           }
-        },
-        error: () => {
-          this.pageState = 'error';
-          this.errorMessage = 'Unable to load the Olympic data.';
-        },
-      });
 
-    this.dataService
-      .getDashboardView()
-      .pipe(
-        filter((view): view is NonNullable<typeof view> => view !== null),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe({
-        next: (view) => {
+          if (status === 'empty') {
+            this.pageState = 'empty';
+            return;
+          }
+
+          if (!view) {
+            this.pageState = 'empty';
+            return;
+          }
+
           this.pageState = 'ready';
           this.indicators = view.indicators;
           this.pieChart = view.pieChart;
           this.chartDescription = this.buildChartDescription(view.pieChart);
-        },
-        error: () => {
-          this.pageState = 'error';
-          this.errorMessage = 'Unable to load the Olympic data.';
         },
       });
   }

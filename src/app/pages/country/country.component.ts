@@ -3,9 +3,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { combineLatest, EMPTY, map, switchMap } from 'rxjs';
 import { CountryDetailView } from '../../models/country-detail-view';
+import { DataLoadStatus } from '../../models/data-load-status';
 import { DataService } from '../../services/data.service';
 
-type CountryPageState = 'loading' | 'ready' | 'empty' | 'error';
+type CountryPageState = DataLoadStatus;
 
 @Component({
   selector: 'app-country',
@@ -16,9 +17,10 @@ export class CountryComponent implements OnInit {
   public readonly introText =
     'View participation counts, medal totals, athletes, and medal trends for the selected country.';
 
+  public readonly errorMessage = 'Unable to load the country information. Please try again later.';
+
   public detailView: CountryDetailView | null = null;
   public pageState: CountryPageState = 'loading';
-  public errorMessage = '';
 
   private readonly destroyRef = inject(DestroyRef);
 
@@ -31,29 +33,10 @@ export class CountryComponent implements OnInit {
   ngOnInit() {
     combineLatest([
       this.route.paramMap.pipe(map((params) => this.dataService.parseCountryRouteId(params.get('id')))),
-      this.dataService.getOlympics(),
+      this.dataService.getLoadStatus(),
     ])
       .pipe(
-        switchMap(([countryId, olympics]) => {
-          if (olympics === null) {
-            this.pageState = 'loading';
-            this.detailView = null;
-            return EMPTY;
-          }
-
-          if (countryId === null) {
-            this.router.navigate(['/not-found']);
-            return EMPTY;
-          }
-
-          if (olympics.length === 0) {
-            this.pageState = 'empty';
-            this.detailView = null;
-            return EMPTY;
-          }
-
-          return this.dataService.getCountryDetailView(countryId);
-        }),
+        switchMap(([countryId, status]) => this.handleRouteAndStatus(countryId, status)),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
@@ -66,11 +49,33 @@ export class CountryComponent implements OnInit {
           this.pageState = 'ready';
           this.detailView = detailView;
         },
-        error: () => {
-          this.pageState = 'error';
-          this.detailView = null;
-          this.errorMessage = 'Unable to load the country information.';
-        },
       });
+  }
+
+  private handleRouteAndStatus(countryId: number | null, status: DataLoadStatus) {
+    if (status === 'loading') {
+      this.pageState = 'loading';
+      this.detailView = null;
+      return EMPTY;
+    }
+
+    if (status === 'error') {
+      this.pageState = 'error';
+      this.detailView = null;
+      return EMPTY;
+    }
+
+    if (status === 'empty') {
+      this.pageState = 'empty';
+      this.detailView = null;
+      return EMPTY;
+    }
+
+    if (countryId === null) {
+      this.router.navigate(['/not-found']);
+      return EMPTY;
+    }
+
+    return this.dataService.getCountryDetailView(countryId);
   }
 }

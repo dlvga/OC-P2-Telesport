@@ -7,10 +7,11 @@ import {
   Observable,
   of,
   tap,
-  throwError,
 } from 'rxjs';
+import { environment } from '../../environments/environment';
 import { CountryDetailView } from '../models/country-detail-view';
 import { DashboardView } from '../models/dashboard-view';
+import { DataLoadStatus } from '../models/data-load-status';
 import { LineChartData, PieChartData } from '../models/chart-data';
 import { Indicator } from '../models/indicator';
 import { Olympic } from '../models/olympic';
@@ -20,23 +21,48 @@ import { Olympic } from '../models/olympic';
 })
 export class DataService {
   private readonly olympicsSubject = new BehaviorSubject<Olympic[] | null>(null);
+  private readonly loadStatusSubject = new BehaviorSubject<DataLoadStatus>('loading');
 
   constructor(private http: HttpClient) {}
 
   loadOlympics(): Observable<Olympic[] | null> {
-    const olympics = this.olympicsSubject.value;
-
-    if (olympics !== null) {
-      return of(olympics);
+    const cached = this.olympicsSubject.value;
+    if (cached !== null) {
+      this.loadStatusSubject.next(cached.length === 0 ? 'empty' : 'ready');
+      return of(cached);
     }
 
-    return this.http.get<Olympic[]>('./assets/mock/olympic.json').pipe(
-      tap((data) => this.olympicsSubject.next(data)),
-      catchError((err) => {
-        this.olympicsSubject.error(err);
-        return throwError(() => err);
+    if (this.loadStatusSubject.value === 'error') {
+      return of(null);
+    }
+
+    this.loadStatusSubject.next('loading');
+
+    const olympicUrl = environment.simulateOlympicsLoadError
+      ? './assets/mock/olympic-missing-for-test.json'
+      : './assets/mock/olympic.json';
+
+    return this.http.get<Olympic[]>(olympicUrl).pipe(
+      tap((data) => {
+        if (data.length === 0) {
+          this.olympicsSubject.next([]);
+          this.loadStatusSubject.next('empty');
+          return;
+        }
+
+        this.olympicsSubject.next(data);
+        this.loadStatusSubject.next('ready');
+      }),
+      catchError(() => {
+        this.olympicsSubject.next(null);
+        this.loadStatusSubject.next('error');
+        return of(null);
       })
     );
+  }
+
+  getLoadStatus(): Observable<DataLoadStatus> {
+    return this.loadStatusSubject.asObservable();
   }
 
   getOlympics(): Observable<Olympic[] | null> {
@@ -45,7 +71,9 @@ export class DataService {
 
   getDashboardView(): Observable<DashboardView | null> {
     return this.getOlympics().pipe(
-      map((olympics) => (olympics === null || olympics.length === 0 ? null : this.buildDashboardView(olympics)))
+      map((olympics) =>
+        olympics === null || olympics.length === 0 ? null : this.buildDashboardView(olympics)
+      )
     );
   }
 
