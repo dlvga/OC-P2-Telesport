@@ -1,9 +1,11 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { combineLatest, EMPTY, map, switchMap, take } from 'rxjs';
+import { LineChartData } from '../../models/chart-data';
 import { CountryDetailView } from '../../models/country-detail-view';
 import { DataLoadStatus } from '../../models/data-load-status';
+import { Indicator } from '../../models/indicator';
+import { Olympic } from '../../models/olympic';
 import { DataService } from '../../services/data.service';
 
 @Component({
@@ -25,56 +27,64 @@ export class CountryComponent implements OnInit {
     private dataService: DataService
   ) {}
 
-  onRetryLoad(): void {
-    this.dataService.retryLoadOlympics().pipe(take(1)).subscribe();
-  }
-
   ngOnInit() {
-    combineLatest([
-      this.route.paramMap.pipe(map((params) => this.dataService.parseCountryRouteId(params.get('id')))),
-      this.dataService.getLoadStatus(),
-    ])
-      .pipe(
-        switchMap(([countryId, status]) => this.handleRouteAndStatus(countryId, status)),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe({
-        next: (detailView) => {
-          if (!detailView) {
-            this.router.navigate(['/not-found']);
-            return;
-          }
-
-          this.pageState = 'ready';
-          this.detailView = detailView;
-        },
-      });
-  }
-
-  private handleRouteAndStatus(countryId: number | null, status: DataLoadStatus) {
-    if (status === 'loading') {
-      this.pageState = 'loading';
-      this.detailView = null;
-      return EMPTY;
-    }
-
-    if (status === 'error') {
-      this.pageState = 'error';
-      this.detailView = null;
-      return EMPTY;
-    }
-
-    if (status === 'empty') {
-      this.pageState = 'empty';
-      this.detailView = null;
-      return EMPTY;
-    }
+    const countryId = this.dataService.parseCountryRouteId(this.route.snapshot.paramMap.get('id'));
 
     if (countryId === null) {
       this.router.navigate(['/not-found']);
-      return EMPTY;
+      return;
     }
 
-    return this.dataService.getCountryDetailView(countryId);
+    this.dataService.getLoadStatus()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((status) => {
+        this.pageState = status;
+      });
+
+    this.dataService.getOlympics()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((olympics) => {
+        if (!olympics) {
+          return;
+        }
+
+        const olympic = olympics.find((entry) => entry.id === countryId);
+        if (!olympic) {
+          this.router.navigate(['/not-found']);
+          return;
+        }
+
+        this.pageState = 'ready';
+        this.detailView = this.buildCountryDetailView(olympic);
+      });
+  }
+
+  private buildCountryDetailView(olympic: Olympic): CountryDetailView {
+    const totalEntries = olympic.participations.length;
+    const totalMedals = olympic.participations.reduce(
+      (acc, participation) => acc + participation.medalsCount,
+      0
+    );
+    const totalAthletes = olympic.participations.reduce(
+      (acc, participation) => acc + participation.athleteCount,
+      0
+    );
+
+    const indicators: Indicator[] = [
+      { label: 'Number of entries', value: totalEntries },
+      { label: 'Total Number of medals', value: totalMedals },
+      { label: 'Total Number of athletes', value: totalAthletes },
+    ];
+
+    const lineChart: LineChartData = {
+      labels: olympic.participations.map((participation) => participation.year),
+      values: olympic.participations.map((participation) => participation.medalsCount),
+    };
+
+    return {
+      title: olympic.country,
+      indicators,
+      lineChart,
+    };
   }
 }

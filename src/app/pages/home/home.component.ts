@@ -1,10 +1,11 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { combineLatest, take } from 'rxjs';
+import { combineLatest } from 'rxjs';
 import { PieChartData } from '../../models/chart-data';
 import { DataLoadStatus } from '../../models/data-load-status';
 import { Indicator } from '../../models/indicator';
+import { Olympic } from '../../models/olympic';
 import { DataService } from '../../services/data.service';
 
 @Component({
@@ -26,34 +27,24 @@ export class HomeComponent implements OnInit {
   constructor(private router: Router, private dataService: DataService) {}
 
   ngOnInit() {
-    combineLatest([this.dataService.getLoadStatus(), this.dataService.getDashboardView()])
+    combineLatest([this.dataService.getLoadStatus(), this.dataService.getOlympics()])
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: ([status, view]) => {
-          if (status === 'loading') {
-            this.pageState = 'loading';
+        next: ([status, olympics]) => {
+          if (status !== 'ready') {
+            this.pageState = status;
             return;
           }
 
-          if (status === 'error') {
-            this.pageState = 'error';
-            return;
-          }
-
-          if (status === 'empty') {
-            this.pageState = 'empty';
-            return;
-          }
-
-          if (!view) {
+          if (!olympics || olympics.length === 0) {
             this.pageState = 'empty';
             return;
           }
 
           this.pageState = 'ready';
-          this.indicators = view.indicators;
-          this.pieChart = view.pieChart;
-          this.chartDescription = this.buildChartDescription(view.pieChart);
+          this.indicators = this.buildIndicators(olympics);
+          this.pieChart = this.buildPieChart(olympics);
+          this.chartDescription = this.buildChartDescription(this.pieChart);
         },
       });
   }
@@ -62,8 +53,28 @@ export class HomeComponent implements OnInit {
     this.router.navigate(['country', countryId]);
   }
 
-  onRetryLoad(): void {
-    this.dataService.retryLoadOlympics().pipe(take(1)).subscribe();
+  private buildIndicators(olympics: Olympic[]): Indicator[] {
+    const totalCountries = olympics.length;
+    const totalJOs = new Set(
+      olympics.flatMap((olympic) => olympic.participations.map((participation) => participation.year))
+    ).size;
+
+    return [
+      { label: 'Number of countries', value: totalCountries },
+      { label: 'Number of JOs', value: totalJOs },
+    ];
+  }
+
+  private buildPieChart(olympics: Olympic[]): PieChartData {
+    return {
+      labels: olympics.map((olympic) => olympic.country),
+      values: olympics.map((olympic) => this.totalMedalsForCountry(olympic)),
+      countryIds: olympics.map((olympic) => olympic.id),
+    };
+  }
+
+  private totalMedalsForCountry(olympic: Olympic): number {
+    return olympic.participations.reduce((acc, participation) => acc + participation.medalsCount, 0);
   }
 
   private buildChartDescription(chart: PieChartData): string {

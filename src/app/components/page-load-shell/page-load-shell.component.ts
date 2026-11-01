@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { DataLoadStatus } from '../../models/data-load-status';
 import { PageLoadingSkeletonComponent } from '../page-loading-skeleton/page-loading-skeleton.component';
 import { PageStatusPanelComponent } from '../page-status-panel/page-status-panel.component';
@@ -17,7 +17,4 @@ export class PageLoadShellComponent {
   @Input() kpiCount = 2;
   @Input() emptyMessage = 'No data available';
   @Input() errorMessage = 'Unable to load data. Please try again later.';
-  @Input() retryAriaLabel = 'Try again';
-
-  @Output() retry = new EventEmitter<void>();
 }

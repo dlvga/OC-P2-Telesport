@@ -1,6 +1,6 @@
 # Architecture front-end — TéléSport
 
-Application Angular 18 (NgModule) affichant un tableau de bord des médailles olympiques par pays et une page de détail par pays. Les données proviennent aujourd’hui d’un mock JSON ; toute la logique métier et d’accès aux données est centralisée dans un service unique.
+Application Angular 18 (NgModule) affichant un tableau de bord des médailles olympiques par pays et une page de détail par pays. Les données proviennent aujourd’hui d’un mock JSON. L’accès aux données (chargement HTTP, cache, statut) est centralisé dans un service unique (`DataService`) ; la logique métier de construction des vues (indicateurs, données de graphique) est portée par les **composants de page** (`HomeComponent`, `CountryComponent`).
 
 ---
 
@@ -38,11 +38,10 @@ Les assets mock restent dans `src/assets/mock/olympic.json`. Les styles globaux 
 | `participation.ts`, `olympic.ts` | Structure du JSON (contrat domaine). |
 | `indicator.ts` | KPI affiché dans l’en-tête (`label` + `value`). |
 | `chart-data.ts` | Données prêtes pour Chart.js (`PieChartData` inclut `countryIds` pour la navigation). |
-| `dashboard-view.ts` | Vue agrégée du dashboard (KPI + pie). |
-| `country-detail-view.ts` | Vue agrégée du détail pays (titre, KPI, line). |
+| `country-detail-view.ts` | Vue agrégée du détail pays (titre, KPI, line), construite par `CountryComponent`. |
 | `data-load-status.ts` | Union `loading` \| `ready` \| `empty` \| `error` pour l’UI de chargement. |
 
-Les pages et composants graphiques consomment surtout les **vues** (`DashboardView`, `CountryDetailView`), pas le JSON brut.
+Le **dashboard** n’a pas de vue agrégée dédiée : `HomeComponent` expose directement `indicators` (`Indicator[]`) et `pieChart` (`PieChartData`) comme propriétés distinctes. Le **détail pays** reste porté par `CountryDetailView` (consommée telle quelle par `CountryCardComponent`), mais elle est désormais **construite dans `CountryComponent`**, pas dans le service. Les composants graphiques (`MedalChartComponent`, `CountryCardComponent`) consomment ces vues/données déjà prêtes, jamais le JSON brut.
 
 ---
 
@@ -53,19 +52,16 @@ Les pages et composants graphiques consomment surtout les **vues** (`DashboardVi
 - **Responsabilités :**
   - Charger `./assets/mock/olympic.json` via `HttpClient` (**une seule fois**, déclenché par `AppComponent`).
   - Mettre en cache le résultat dans un `BehaviorSubject` (`null` = pas encore chargé).
-  - Calculer KPI et séries pour les graphiques (aucune agrégation métier dans les composants d’affichage).
+  - Exposer les données brutes (`Olympic[]`) et le statut de chargement. **Aucune agrégation métier** (KPI, séries de graphique) côté service : cette construction de vue est désormais faite par les **pages**.
 
 | Méthode | Usage |
 | --- | --- |
-| `loadOlympics()` | Déclenche le HTTP (idempotent). **Uniquement** depuis `AppComponent`. |
-| `retryLoadOlympics()` | Relance le HTTP après une erreur (ou un état vide) : remet le cache à `null`, passe en `loading`, puis met à jour le statut. Appelé depuis les pages (bouton Try again). |
-| `getOlympics()` | Observable du cache : `Olympic[]` ou `null` (en attente). |
-| `getDashboardView()` | KPI dashboard + `PieChartData` ; `null` si cache vide ou pas prêt. |
-| `getCountryDetailView(id)` | `CountryDetailView` ou `null` (cache non prêt, données vides, ou pays inconnu). |
+| `loadOlympics()` | Déclenche le HTTP (idempotent) ; si une erreur a déjà été rencontrée, ne retente pas le réseau. **Uniquement** depuis `AppComponent`. |
+| `getOlympics()` | Observable du cache : `Olympic[]` ou `null` (en attente / erreur). Source unique utilisée par `HomeComponent` et `CountryComponent` pour construire leurs vues. |
 | `parseCountryRouteId(param)` | Valide le paramètre de route `:id` (nombre fini ou `null`). |
 | `getLoadStatus()` | `loading` \| `ready` \| `empty` \| `error` — état du chargement mock (sans message technique). |
 
-Les pages **n’appellent pas** `loadOlympics()` au démarrage : elles s’appuient sur `getLoadStatus()` et les vues dérivées. En cas d’erreur affichée, elles peuvent appeler **`retryLoadOlympics()`**.
+Les pages **n’appellent pas** `loadOlympics()` au démarrage : elles s’appuient sur `getLoadStatus()` et `getOlympics()`. Il n’y a **pas de mécanisme de retry** : en cas d’erreur, le statut reste `error` tant que l’application n’est pas rechargée (pas de bouton « Try again »).
 
 **Test erreur (dev)** : `environment.simulateOlympicsLoadError = true` force une URL mock invalide pour vérifier l’UI d’erreur.
 
@@ -80,9 +76,9 @@ Les pages **n’appellent pas** `loadOlympics()` au démarrage : elles s’appui
 | **CountryCardComponent** | `app-country-card` | Header + line chart. Input : `detailView`. |
 | **PageLoadShellComponent** | `app-page-load-shell` | Enveloppe **loading / empty / error / ready** : compose skeleton + status panel ; contenu métier projeté via `<ng-content>` quand `loadState === 'ready'`. |
 | **PageLoadingSkeletonComponent** | `app-page-loading-skeleton` | Squelette (titre, KPI, chart). Inputs : `statusMessage`, `kpiCount` ; `showIntroLine` optionnel (non utilisé). |
-| **PageStatusPanelComponent** | `app-page-status-panel` | États **empty** / **error** partagés. Inputs : `variant`, `message`, libellés retry. Output : `retry`. |
+| **PageStatusPanelComponent** | `app-page-status-panel` | États **empty** / **error** partagés (message seul, pas d’action). Inputs : `variant`, `message`. |
 
-Composants **standalone**. `AppModule` importe `HeaderComponent`, `MedalChartComponent`, `CountryCardComponent`, `PageLoadShellComponent` (ce dernier importe skeleton + status panel). Aucun HTTP dans les composants d’affichage ; le retry est déclenché par la page via `DataService`.
+Composants **standalone**. `AppModule` importe `HeaderComponent`, `MedalChartComponent`, `CountryCardComponent`, `PageLoadShellComponent` (ce dernier importe skeleton + status panel). Aucun HTTP ni calcul d’agrégat métier dans les composants d’affichage : ils reçoivent des données/vues déjà prêtes via leurs `@Input()`, construites par la page parente.
 
 ---
 
@@ -90,8 +86,8 @@ Composants **standalone**. `AppModule` importe `HeaderComponent`, `MedalChartCom
 
 | Route | Composant | Rôle |
 | --- | --- | --- |
-| `''` | `HomeComponent` | `PageLoadShell` + `getLoadStatus()` / `getDashboardView()` ; header + pie ; navigation → `/country/:id`. |
-| `country/:id` | `CountryComponent` | `PageLoadShell` + `getLoadStatus()` ; `parseCountryRouteId` + `getCountryDetailView(id)` ; `CountryCard` ; id invalide ou pays inconnu → `/not-found` (dans le composant). |
+| `''` | `HomeComponent` | `PageLoadShell` + `getLoadStatus()` / `getOlympics()` ; construit `indicators` + `pieChart` ; header + pie ; navigation → `/country/:id`. |
+| `country/:id` | `CountryComponent` | `PageLoadShell` + `getLoadStatus()` ; `parseCountryRouteId` + `getOlympics()` (recherche par id) ; construit `CountryDetailView` ; `CountryCard` ; id invalide ou pays inconnu → `/not-found` (dans le composant). |
 | `not-found`, `**` | `NotFoundComponent` | Message utilisateur + lien retour dashboard. |
 
 Bouton **Back to Dashboard** (`routerLink="/"`) : page **détail pays** (hors shell) et **not-found**. Le dashboard n’a pas de bouton retour.
@@ -132,7 +128,7 @@ flowchart TB
 
   subgraph countryFlow [Route country id - CountryComponent]
     CountryRoute --> Country[CountryComponent]
-    Country -->|paramMap plus getLoadStatus switchMap| DS
+    Country -->|snapshot paramMap puis getLoadStatus et getOlympics| DS
     Country --> ShellC[PageLoadShell]
     ShellC --> Skel
     ShellC --> StatusP
@@ -141,18 +137,11 @@ flowchart TB
     Card --> Line[Chart.js line chart]
     Country -->|detailView null| NotFound[NotFoundComponent]
   end
-
-  subgraph retryFlow [Erreur utilisateur]
-    StatusP -->|retry emit| Home
-    StatusP -->|retry emit| Country
-    Home -->|retryLoadOlympics| DS
-    Country -->|retryLoadOlympics| DS
-  end
 ```
 
 ### Vue d’ensemble
 
-Toute l’application repose sur **un cache en mémoire** dans `DataService` (liste `Olympic[]` ou `null`) et un **statut de chargement** (`DataLoadStatus`). Les composants d’affichage ne parlent jamais à `HttpClient` directement : ils observent le service et affichent des **vues** déjà calculées (`DashboardView`, `CountryDetailView`).
+Toute l’application repose sur **un cache en mémoire** dans `DataService` (liste `Olympic[]` ou `null`) et un **statut de chargement** (`DataLoadStatus`). Les composants d’affichage ne parlent jamais à `HttpClient` directement, et le service ne fait plus que charger/exposer les données brutes : ce sont les **pages** (`HomeComponent`, `CountryComponent`) qui, à partir de `Olympic[]`, calculent les indicateurs et construisent les données de graphique avant de les transmettre aux composants d’affichage via leurs `@Input()`.
 
 ### 1. Démarrage et chargement du mock
 
@@ -162,25 +151,23 @@ Toute l’application repose sur **un cache en mémoire** dans `DataService` (li
    - succès avec données → cache rempli, statut **`ready`** ;
    - tableau vide → cache `[]`, statut **`empty`** ;
    - échec HTTP → cache `null`, statut **`error`**.
-4. Si le cache est déjà rempli (navigation ultérieure sans retry), `loadOlympics()` ne refait pas le réseau : il republie le statut adapté.
+4. Si le cache est déjà rempli (navigation ultérieure), `loadOlympics()` ne refait pas le réseau : il republie le statut adapté. En cas d’erreur, le statut reste `error` : il n’y a pas de nouvelle tentative automatique ni de bouton de relance.
 
 ### 2. Rôle des observables du service
 
 | Observable | Contenu | Consommateur principal |
 | --- | --- | --- |
 | `getLoadStatus()` | `loading` \| `ready` \| `empty` \| `error` | `HomeComponent`, `CountryComponent` → input `[loadState]` de **`PageLoadShell`** |
-| `getDashboardView()` | KPI + `PieChartData` ou `null` | **`HomeComponent`** uniquement |
-| `getCountryDetailView(id)` | Titre, KPI, `LineChartData` ou `null` | **`CountryComponent`** (après lecture de `:id`) |
-| `getOlympics()` | Cache brut (peu utilisé par les pages directement) | Base des vues dérivées dans le service |
+| `getOlympics()` | Cache brut : `Olympic[]` ou `null` | `HomeComponent` et `CountryComponent`, qui en dérivent leurs propres vues |
 
-Les agrégations (nombre de pays, nombre d’éditions, totaux médailles, séries pour Chart.js) sont calculées **dans le service** au moment de construire les vues.
+Les agrégations (nombre de pays, nombre d’éditions, totaux médailles, séries pour Chart.js) sont calculées **dans les pages** (`HomeComponent.buildIndicators`/`buildPieChart`, `CountryComponent.buildCountryDetailView`), pas dans le service.
 
 ### 3. Dashboard (`HomeComponent`)
 
-1. Au `ngOnInit`, **`combineLatest([getLoadStatus(), getDashboardView()])`** met à jour `pageState` et, si `ready`, les propriétés `indicators`, `pieChart`, `chartDescription`.
+1. Au `ngOnInit`, **`combineLatest([getLoadStatus(), getOlympics()])`** met à jour `pageState` et, si `ready` et données non vides, construit localement `indicators` (`buildIndicators`), `pieChart` (`buildPieChart`) et `chartDescription`.
 2. Le template enveloppe tout dans **`PageLoadShell`** :
    - **`loading`** → **`PageLoadingSkeleton`** (2 KPI, chart) ;
-   - **`empty`** / **`error`** → **`PageStatusPanel`** (Try again → **`retryLoadOlympics()`** sur la page) ;
+   - **`empty`** / **`error`** → **`PageStatusPanel`** (message seul, pas d’action de relance) ;
    - **`ready`** → contenu projeté : **`HeaderComponent`** + **`MedalChartComponent`**.
 3. **`MedalChartComponent`** reçoit `PieChartData` (labels, values, **countryIds**). Clic sur un secteur ou bouton « View details » du tableau → **`countrySelected`** → `Router.navigate(['country', id])`.
 
@@ -188,29 +175,24 @@ Aucun bouton « Back to Dashboard » sur l’accueil.
 
 ### 4. Détail pays (`CountryComponent`)
 
-1. **`combineLatest([paramMap → parseCountryRouteId, getLoadStatus()])`** puis **`switchMap`** :
-   - statut `loading` / `error` / `empty` → shell seul, pas de requête de détail ;
-   - statut `ready` + id valide → **`getCountryDetailView(id)`** ;
-   - id invalide → navigation **`/not-found`** (sans guard dédié aujourd’hui).
-2. Même **`PageLoadShell`** que l’accueil (skeleton à **3** KPI côté country).
-3. En **`ready`**, **`CountryCardComponent`** affiche **`HeaderComponent`** (titre = nom du pays) + courbe Chart.js à partir de `detailView.lineChart`.
-4. Si la vue détail est `null` (pays absent du mock) → redirection **`/not-found`**.
+1. Au `ngOnInit`, l’`id` de route est lu **une seule fois** via `this.route.snapshot.paramMap` + **`parseCountryRouteId`** (pas d’abonnement : l’`id` ne change jamais pour une instance donnée du composant, puisqu’il n’existe aucune navigation `country → country` dans l’app — on repasse toujours par le dashboard). Si l’`id` est invalide → navigation immédiate **`/not-found`**.
+2. Deux abonnements **indépendants** (pas de `combineLatest`/`switchMap`), chacun avec sa propre responsabilité :
+   - **`getLoadStatus()`** → met à jour `pageState` (`loading` / `ready` / `empty` / `error`) ;
+   - **`getOlympics()`** → dès que le cache est rempli, recherche le pays par `id` puis construit la vue via **`buildCountryDetailView(olympic)`** ; pays introuvable → navigation **`/not-found`**.
+3. Même **`PageLoadShell`** que l’accueil (skeleton à **3** KPI côté country).
+4. En **`ready`**, **`CountryCardComponent`** affiche **`HeaderComponent`** (titre = nom du pays) + courbe Chart.js à partir de `detailView.lineChart`.
 5. Sous la grille : lien **Back to Dashboard** (`routerLink="/"`), hors shell.
 
 ### 5. Page introuvable
 
 **`NotFoundComponent`** : message statique + retour dashboard. Route explicite `/not-found` ou wildcard `**`.
 
-### 6. Rechargement après erreur
-
-Sur **`PageStatusPanel`** (variant error), **Try again** remonte l’événement **`retry`** → la page appelle **`retryLoadOlympics()`** : cache invalidé, statut **`loading`**, nouveau GET. Les abonnements existants (`combineLatest` / `switchMap`) réagissent et mettent à jour le shell puis le contenu **sans** rappeler `loadOlympics()` depuis `AppComponent`.
-
 ---
 
 ## UI, responsive et accessibilité
 
 - Grille **4 / 8 / 12 colonnes** (mobile / tablette / desktop) via `.page-grid`.
-- États **loading / empty / error / ready** centralisés via **`PageLoadShell`** sur home et country ; erreur → **Try again** (`retryLoadOlympics`).
+- États **loading / empty / error / ready** centralisés via **`PageLoadShell`** sur home et country ; en **`error`**, message affiché sans action de relance (il faut recharger l’application).
 - Pas de paragraphe d’intro au-dessus du bandeau (contenu direct : header + graphiques).
 - Graphiques : conteneur `.chart-canvas-host` (Chart.js gère le ratio ; pas de `width`/`height` forcés sur le canvas).
 - Accessibilité : focus visible, description cachée du camembert, **tableau** des pays sous le pie (navigation clavier / lecteur d’écran).
@@ -223,16 +205,16 @@ La connexion à une API REST ne devrait toucher **que** `DataService` :
 
 1. Remplacer l’URL du mock par les endpoints REST.
 2. Adapter la réponse vers `Olympic` / `Participation` (Adapter si le JSON diffère).
-3. Conserver les méthodes de vue (`getDashboardView`, `getCountryDetailView`) : les pages restent stables.
+3. `getOlympics()` / `getLoadStatus()` restent la même interface : les pages, qui construisent déjà leurs vues à partir de `Olympic[]`, n’ont pas à changer.
 
-Améliorations possibles : guard de route pour le 404 pays, invalidation de cache, tests unitaires (`DataService`, pages).
+Améliorations possibles : guard de route pour le 404 pays, invalidation de cache, mécanisme de relance après erreur si besoin, tests unitaires (`DataService`, pages).
 
 ---
 
 ## Stack et conventions
 
 - **Angular 18**, NgModule (`AppModule`), routing classique.
-- **RxJS** : `Observable`, `combineLatest`, `switchMap`, `takeUntilDestroyed` dans les pages.
+- **RxJS** : `Observable`, `combineLatest` (home), `takeUntilDestroyed` dans les pages.
 - **Chart.js** dans `MedalChartComponent` et `CountryCardComponent`.
 - Typage strict : pas de `any` dans `src/app`.
 - Totaux médailles : champ mock `medalsCount` (pas de décomposition or/argent/bronze).
@@ -242,6 +224,6 @@ Améliorations possibles : guard de route pour le 404 pays, invalidation de cach
 ## Pour reprendre le projet
 
 1. `npm install` puis `npm start` (`ng serve`).
-2. Données : `DataService` ; chargement initial dans `AppComponent`.
-3. Nouvel écran : page sous `pages/`, route, abonnement à une vue du service.
+2. Données : `DataService` (chargement brut + statut) ; chargement initial dans `AppComponent`. Les vues (indicateurs, données de graphique) sont construites dans les pages.
+3. Nouvel écran : page sous `pages/`, route, abonnement à `getOlympics()`/`getLoadStatus()` + construction de sa propre vue si besoin.
 4. Nouveau bloc UI : `ng generate component components/...` (standalone), import dans `AppModule`.

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
 export type PageStatusVariant = 'empty' | 'error';
 
@@ -12,12 +12,4 @@ export type PageStatusVariant = 'empty' | 'error';
 export class PageStatusPanelComponent {
   @Input() variant: PageStatusVariant = 'empty';
   @Input() message = 'No data available';
-  @Input() retryLabel = 'Try again';
-  @Input() retryAriaLabel = 'Try again';
-
-  @Output() retry = new EventEmitter<void>();
-
-  onRetryClick(): void {
-    this.retry.emit();
-  }
 }

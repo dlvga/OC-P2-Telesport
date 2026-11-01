@@ -5,8 +5,6 @@
       loadingStatusMessage="Loading country data"
       [kpiCount]="3"
       [errorMessage]="errorMessage"
-      retryAriaLabel="Try loading country data again"
-      (retry)="onRetryLoad()"
     >
       <app-country-card
         *ngIf="detailView"

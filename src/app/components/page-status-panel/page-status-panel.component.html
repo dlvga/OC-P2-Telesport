@@ -7,8 +7,5 @@
 @if (variant === 'error') {
   <div class="page-status page-status--error span-full" role="alert">
     <p>{{ message }}</p>
-    <button type="button" class="btn" [attr.aria-label]="retryAriaLabel" (click)="onRetryClick()">
-      {{ retryLabel }}
-    </button>
   </div>
 }
