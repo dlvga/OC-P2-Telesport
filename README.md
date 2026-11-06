@@ -22,8 +22,13 @@ Les données proviennent d’un **mock JSON** (`src/assets/mock/olympic.json`). 
 
 ## Prérequis
 
-- **Node.js** LTS (compatible Angular 18)
-- **npm**
+> ⚠️ Ce projet est figé sur **Angular 18** (`package.json` : `^18.0.6`). Les plages ci-dessous sont celles exigées **par Angular 18** — elles ne garantissent pas la compatibilité avec une version d'Angular supérieure (19, 20…), qui nécessiterait une migration (`ng update`) et des tests dédiés.
+
+- **Node.js** `^18.19.1 || ^20.11.1 || >=22.0.0` (versions supportées par Angular 18)
+- **npm** `^6.11.0 || ^7.5.6 || >=8.0.0`
+- **Angular CLI** `^18.0.6` (`npm install -g @angular/cli@18`)
+
+> Versions testées pour ce projet : Node.js v22.22.2 / npm 11.6.4.
 
 ---
 
