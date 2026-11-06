@@ -2,13 +2,11 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  EventEmitter,
-  Input,
-  OnChanges,
   OnDestroy,
-  Output,
-  SimpleChanges,
   ViewChild,
+  effect,
+  input,
+  output,
 } from '@angular/core';
 import { NgFor } from '@angular/common';
 import Chart from 'chart.js/auto';
@@ -21,19 +19,22 @@ import { PieChartData } from '../../models/chart-data';
   templateUrl: './medal-chart.component.html',
   styleUrl: './medal-chart.component.scss',
 })
-export class MedalChartComponent implements AfterViewInit, OnChanges, OnDestroy {
-  @Input() chartData: PieChartData | null = null;
-  @Input() description = 'Medal chart by country.';
-  @Output() countrySelected = new EventEmitter<number>();
+export class MedalChartComponent implements AfterViewInit, OnDestroy {
+  chartData = input<PieChartData | null>(null);
+  description = input('Medal chart by country.');
+  countrySelected = output<number>();
   @ViewChild('medalChart') private canvas?: ElementRef<HTMLCanvasElement>;
 
   private pieChart?: Chart<'pie', number[], string>;
   private viewReady = false;
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['chartData'] && this.viewReady) {
-      this.buildChart();
-    }
+  constructor() {
+    effect(() => {
+      this.chartData();
+      if (this.viewReady) {
+        this.buildChart();
+      }
+    });
   }
 
   ngAfterViewInit(): void {
@@ -46,14 +47,15 @@ export class MedalChartComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   selectCountry(index: number): void {
-    const countryId = this.chartData?.countryIds[index];
-    if (Number.isFinite(countryId)) {
+    const countryId = this.chartData()?.countryIds[index];
+    if (typeof countryId === 'number' && Number.isFinite(countryId)) {
       this.countrySelected.emit(countryId);
     }
   }
 
   private buildChart(): void {
-    if (!this.canvas || !this.chartData || this.chartData.labels.length === 0) {
+    const chartData = this.chartData();
+    if (!this.canvas || !chartData || chartData.labels.length === 0) {
       return;
     }
 
@@ -61,11 +63,11 @@ export class MedalChartComponent implements AfterViewInit, OnChanges, OnDestroy 
     this.pieChart = new Chart(this.canvas.nativeElement, {
       type: 'pie',
       data: {
-        labels: this.chartData.labels,
+        labels: chartData.labels,
         datasets: [
           {
             label: 'Medals',
-            data: this.chartData.values,
+            data: chartData.values,
             backgroundColor: ['#0b868f', '#adc3de', '#7a3c53', '#8f6263', '#d29922', '#94819d'],
             hoverOffset: 4,
           },
@@ -76,7 +78,7 @@ export class MedalChartComponent implements AfterViewInit, OnChanges, OnDestroy 
         maintainAspectRatio: false,
         aspectRatio: 1,
         onClick: (event) => {
-          if (!event.native || !this.pieChart || !this.chartData) {
+          if (!event.native || !this.pieChart) {
             return;
           }
 

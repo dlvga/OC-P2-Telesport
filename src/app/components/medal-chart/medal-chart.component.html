@@ -1,5 +1,5 @@
 <figure class="medal-chart">
-  <p class="visually-hidden" id="medal-chart-desc">{{ description }}</p>
+  <p class="visually-hidden" id="medal-chart-desc">{{ description() }}</p>
   <div class="chart-canvas-host">
     <canvas
       #medalChart
@@ -18,9 +18,9 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let label of chartData?.labels; let index = index">
+      <tr *ngFor="let label of chartData()?.labels; let index = index">
         <th scope="row">{{ label }}</th>
-        <td>{{ chartData?.values?.[index] }}</td>
+        <td>{{ chartData()?.values?.[index] }}</td>
         <td>
           <button
             type="button"

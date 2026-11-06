@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { combineLatest } from 'rxjs';
@@ -20,7 +20,7 @@ export class HomeComponent implements OnInit {
   public indicators: Indicator[] = [];
   public pieChart: PieChartData | null = null;
   public chartDescription = '';
-  public pageState: DataLoadStatus = 'loading';
+  public pageState = signal<DataLoadStatus>('loading');
 
   private readonly destroyRef = inject(DestroyRef);
 
@@ -32,16 +32,16 @@ export class HomeComponent implements OnInit {
       .subscribe({
         next: ([status, olympics]) => {
           if (status !== 'ready') {
-            this.pageState = status;
+            this.pageState.set(status);
             return;
           }
 
           if (!olympics || olympics.length === 0) {
-            this.pageState = 'empty';
+            this.pageState.set('empty');
             return;
           }
 
-          this.pageState = 'ready';
+          this.pageState.set('ready');
           this.indicators = this.buildIndicators(olympics);
           this.pieChart = this.buildPieChart(olympics);
           this.chartDescription = this.buildChartDescription(this.pieChart);

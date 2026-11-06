@@ -72,13 +72,15 @@ Les pages **n’appellent pas** `loadOlympics()` au démarrage : elles s’appui
 | Composant | Selector | Rôle |
 | --- | --- | --- |
 | **HeaderComponent** | `app-header` | Titre (`h1`) + liste d’indicateurs (KPI). Inputs : `title`, `indicators`. |
-| **MedalChartComponent** | `app-medal-chart` | Pie chart (Chart.js) + tableau pays / médailles / « View details ». Inputs : `chartData`, `description`. Output : `countrySelected` (id pays). |
+| **MedalChartComponent** | `app-medal-chart` | Pie chart (Chart.js) + tableau pays / médailles / « View details ». Inputs **Signal** (`input()`) : `chartData`, `description`. Output **Signal** (`output()`) : `countrySelected` (id pays). Reconstruction du chart pilotée par un `effect()` (plus de `ngOnChanges`). |
 | **CountryCardComponent** | `app-country-card` | Header + line chart. Input : `detailView`. |
 | **PageLoadShellComponent** | `app-page-load-shell` | Enveloppe **loading / empty / error / ready** : compose skeleton + status panel ; contenu métier projeté via `<ng-content>` quand `loadState === 'ready'`. |
 | **PageLoadingSkeletonComponent** | `app-page-loading-skeleton` | Squelette (titre, KPI, chart). Inputs : `statusMessage`, `kpiCount` ; `showIntroLine` optionnel (non utilisé). |
 | **PageStatusPanelComponent** | `app-page-status-panel` | États **empty** / **error** partagés (message seul, pas d’action). Inputs : `variant`, `message`. |
 
-Composants **standalone**. `AppModule` importe `HeaderComponent`, `MedalChartComponent`, `CountryCardComponent`, `PageLoadShellComponent` (ce dernier importe skeleton + status panel). Aucun HTTP ni calcul d’agrégat métier dans les composants d’affichage : ils reçoivent des données/vues déjà prêtes via leurs `@Input()`, construites par la page parente.
+Composants **standalone**. `AppModule` importe `HeaderComponent`, `MedalChartComponent`, `CountryCardComponent`, `PageLoadShellComponent` (ce dernier importe skeleton + status panel). Aucun HTTP ni calcul d’agrégat métier dans les composants d’affichage : ils reçoivent des données/vues déjà prêtes via leurs `@Input()` (ou `input()`/`output()` pour `MedalChartComponent`), construites par la page parente.
+
+`MedalChartComponent` est le seul composant migré vers l’API **Signals** (`input()`, `output()`, `effect()`) ; les autres composants réutilisables utilisent encore les décorateurs `@Input()`/`@Output()` classiques.
 
 ---
 
@@ -164,8 +166,8 @@ Les agrégations (nombre de pays, nombre d’éditions, totaux médailles, séri
 
 ### 3. Dashboard (`HomeComponent`)
 
-1. Au `ngOnInit`, **`combineLatest([getLoadStatus(), getOlympics()])`** met à jour `pageState` et, si `ready` et données non vides, construit localement `indicators` (`buildIndicators`), `pieChart` (`buildPieChart`) et `chartDescription`.
-2. Le template enveloppe tout dans **`PageLoadShell`** :
+1. Au `ngOnInit`, **`combineLatest([getLoadStatus(), getOlympics()])`** met à jour `pageState` (**Signal**, `pageState.set(...)`) et, si `ready` et données non vides, construit localement `indicators` (`buildIndicators`), `pieChart` (`buildPieChart`) et `chartDescription`.
+2. Le template enveloppe tout dans **`PageLoadShell`** (lu via `pageState()`) :
    - **`loading`** → **`PageLoadingSkeleton`** (2 KPI, chart) ;
    - **`empty`** / **`error`** → **`PageStatusPanel`** (message seul, pas d’action de relance) ;
    - **`ready`** → contenu projeté : **`HeaderComponent`** + **`MedalChartComponent`**.
@@ -215,6 +217,7 @@ Améliorations possibles : guard de route pour le 404 pays, invalidation de cach
 
 - **Angular 18**, NgModule (`AppModule`), routing classique.
 - **RxJS** : `Observable`, `combineLatest` (home), `takeUntilDestroyed` dans les pages.
+- **Signals** : migration partielle en cours. `MedalChartComponent` utilise `input()`/`output()`/`effect()` (remplace `@Input()`/`@Output()`/`ngOnChanges`) ; `HomeComponent.pageState` utilise `signal()`. Le reste de l’app (autres composants, `DataService`) reste sur `@Input()`/`Observable`/`BehaviorSubject`.
 - **Chart.js** dans `MedalChartComponent` et `CountryCardComponent`.
 - Typage strict : pas de `any` dans `src/app`.
 - Totaux médailles : champ mock `medalsCount` (pas de décomposition or/argent/bronze).
