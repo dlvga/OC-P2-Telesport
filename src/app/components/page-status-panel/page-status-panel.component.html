@@ -1,0 +1,11 @@
+@if (variant === 'empty') {
+  <p class="page-status page-status--empty span-full" role="status">
+    {{ message }}
+  </p>
+}
+
+@if (variant === 'error') {
+  <div class="page-status page-status--error span-full" role="alert">
+    <p>{{ message }}</p>
+  </div>
+}

@@ -1,0 +1,19 @@
+.dashboard__header {
+  margin-bottom: 1.25rem;
+}
+
+.dashboard__chart {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .dashboard__header {
+    margin-bottom: 1.5rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .dashboard__header {
+    margin-bottom: 1.75rem;
+  }
+}

@@ -1,0 +1,32 @@
+<ng-container *ngIf="detailView">
+  <app-header [title]="detailView.title" [indicators]="detailView.indicators"></app-header>
+  <div class="chart-container wrapper-container">
+    <figure class="container country-chart">
+      <p class="visually-hidden" id="country-chart-desc">{{ chartDescription }}</p>
+      <div class="chart-canvas-host">
+        <canvas
+          #countryChart
+          role="img"
+          aria-labelledby="country-chart-desc"
+          aria-label="Line chart of medals per Olympic edition."
+        ></canvas>
+      </div>
+      <figcaption class="country-chart__caption">Medals per Olympic edition</figcaption>
+      <table class="chart-data-table">
+        <caption>Medal data for {{ detailView.title }}</caption>
+        <thead>
+          <tr>
+            <th scope="col">Year</th>
+            <th scope="col">Medals</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let year of detailView.lineChart.labels; let index = index">
+            <th scope="row">{{ year }}</th>
+            <td>{{ detailView.lineChart.values[index] }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </figure>
+  </div>
+</ng-container>

@@ -1,19 +1,5 @@
-
-.wrapper-container {
-    display: flex;
-    justify-content: center;
-}
-
-.container {
-    width: 50%;
-    h2{
-        text-align: center;
-        color: gray;
-    }
-}
-
-@media screen and (max-width: 1000px) {
-    .container {
-        width: 100%;
-    }
+.country-detail__actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.5rem;
 }

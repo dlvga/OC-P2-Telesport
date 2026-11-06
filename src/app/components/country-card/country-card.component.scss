@@ -1,0 +1,91 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.chart-container {
+  margin-top: 1.25rem;
+}
+
+.wrapper-container {
+  width: 100%;
+  min-width: 0;
+}
+
+.country-chart {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.chart-canvas-host {
+  padding: 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #fafcfd;
+}
+
+.country-chart__caption {
+  margin: 0.75rem 0 0;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.chart-data-table {
+  width: 100%;
+  margin-top: 1rem;
+  border-collapse: collapse;
+  text-align: left;
+
+  caption {
+    margin-bottom: 0.5rem;
+    color: var(--color-text-muted);
+    text-align: left;
+  }
+
+  th,
+  td {
+    padding: 0.5rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  th[scope='row'] {
+    font-weight: 600;
+  }
+}
+
+@media (min-width: 768px) {
+  .chart-container {
+    margin-top: 1.5rem;
+  }
+
+  .chart-canvas-host {
+    max-width: 100%;
+  }
+}
+
+@media (min-width: 1200px) {
+  :host ::ng-deep .page-header__title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  :host ::ng-deep .page-header__indicators {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .chart-container {
+    margin-top: 2rem;
+  }
+
+  .country-chart {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+}

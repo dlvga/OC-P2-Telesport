@@ -1,0 +1,23 @@
+@switch (loadState) {
+  @case ('loading') {
+    <app-page-loading-skeleton
+      class="span-full"
+      [statusMessage]="loadingStatusMessage"
+      [showIntroLine]="showIntroLine"
+      [kpiCount]="kpiCount"
+    ></app-page-loading-skeleton>
+  }
+  @case ('empty') {
+    <app-page-status-panel class="span-full" variant="empty" [message]="emptyMessage"></app-page-status-panel>
+  }
+  @case ('error') {
+    <app-page-status-panel
+      class="span-full"
+      variant="error"
+      [message]="errorMessage"
+    ></app-page-status-panel>
+  }
+  @case ('ready') {
+    <ng-content></ng-content>
+  }
+}

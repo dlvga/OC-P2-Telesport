@@ -1,0 +1,37 @@
+<figure class="medal-chart">
+  <p class="visually-hidden" id="medal-chart-desc">{{ description() }}</p>
+  <div class="chart-canvas-host">
+    <canvas
+      #medalChart
+      role="img"
+      aria-labelledby="medal-chart-desc"
+      aria-label="Pie chart of medals by country."
+    ></canvas>
+  </div>
+  <table class="chart-data-table">
+    <caption>Medals by country. Select a country to view its details.</caption>
+    <thead>
+      <tr>
+        <th scope="col">Country</th>
+        <th scope="col">Medals</th>
+        <th scope="col"><span class="visually-hidden">Action</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let label of chartData()?.labels; let index = index">
+        <th scope="row">{{ label }}</th>
+        <td>{{ chartData()?.values?.[index] }}</td>
+        <td>
+          <button
+            type="button"
+            class="chart-data-table__action"
+            (click)="selectCountry(index)"
+          >
+            View details
+            <span class="visually-hidden"> for {{ label }}</span>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</figure>

@@ -1,20 +1,22 @@
-<h2>Olympic games app</h2>
-<hr/>
-<div>
-  <div>
-    <div class="center">
-      <div>{{ titlePage }}</div>
-    </div>
-    <div class="split">
-      <div>
-        <p>Number of countries</p>
-        <p>{{ totalCountries }}</p>
+<section class="page dashboard">
+  <div class="page-grid">
+    <app-page-load-shell
+      [loadState]="pageState()"
+      loadingStatusMessage="Loading data"
+      [kpiCount]="2"
+      [errorMessage]="errorMessage"
+    >
+      <div class="dashboard__header span-full">
+        <app-header [title]="titlePage" [indicators]="indicators"></app-header>
       </div>
-      <div>
-        <p>Number of JOs</p>
-        <p>{{ totalJOs }}</p>
+
+      <div class="dashboard__chart span-full" *ngIf="pieChart">
+        <app-medal-chart
+          [chartData]="pieChart"
+          [description]="chartDescription"
+          (countrySelected)="onCountrySelected($event)"
+        ></app-medal-chart>
       </div>
-    </div>
+    </app-page-load-shell>
   </div>
-  <canvas id="DashboardPieChart">{{ pieChart }}</canvas>
-</div>
+</section>

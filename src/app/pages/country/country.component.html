@@ -1,30 +1,20 @@
-<div>
-  <div>
-    <div class="center">
-      <div>{{ titlePage }}</div>
-    </div>
-    <div class="split">
-      <div>
-        <p>Number of entries</p>
-        <p>{{ totalEntries }}</p>
-      </div>
-      <div>
-        <p>Total Number of medals</p>
-        <p>{{ totalMedals }}</p>
-      </div>
-      <div>
-        <p>Total Number of athletes</p>
-        <p>{{ totalAthletes }}</p>
-      </div>
-    </div>
-  </div>
-  <div class="chart-container wrapper-container">
-    <div class="container">
-      <canvas id="countryChart">{{ lineChart }}</canvas>
-      <h2>Date</h2>
+<section class="page country-detail">
+  <div class="page-grid">
+    <app-page-load-shell
+      [loadState]="pageState"
+      loadingStatusMessage="Loading country data"
+      [kpiCount]="3"
+      [errorMessage]="errorMessage"
+    >
+      <app-country-card
+        *ngIf="detailView"
+        class="span-full country-detail__card"
+        [detailView]="detailView"
+      ></app-country-card>
+    </app-page-load-shell>
+
+    <div class="span-full country-detail__actions">
+      <a routerLink="/" class="btn btn--secondary" aria-label="Back to Dashboard">Back to Dashboard</a>
     </div>
   </div>
-  <div class="center">
-    <a routerLink="">Go back</a>
-  </div>
-</div>
+</section>
